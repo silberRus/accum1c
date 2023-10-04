@@ -1,0 +1,67 @@
+redis_addr: "localhost:6379"
+
+database_structure:
+
+  - key: product
+    fields:
+      - name: guid
+        type: string
+      - name: code
+        type: string
+      - name: name
+        type: string
+    update-endpoint: update_product
+    get-endpoint: get_product
+
+  - key: category
+    fields:
+      - name: guid
+        type: string
+      - name: name
+        type: string
+    update-endpoint: update_category
+    get-endpoint: get_category
+
+  - key: quantity
+    fields:
+      - name: guid
+        type: string
+      - name: name
+        type: string
+    update-endpoint: update_quantity
+    get-endpoint: get_quantity
+
+  - key: cell
+    fields:
+      - name: guid
+        type: string
+      - name: name
+        type: string
+    update-endpoint: update_cell
+    get-endpoint: get_cell
+
+  - key: product-store
+    fields:
+      - name: product
+        type: product
+      - name: quantity
+        type: quantity
+      - name: category
+        type: category
+      - sum: sum
+        type: float
+    control-fields: sum
+    update-endpoint: update_product_store
+    get-endpoint: get_product_store
+
+  - key: product-cell
+    fields:
+      - name: product
+        type: product
+      - name: cell
+        type: cell
+      - name: sum
+        type: float
+    control-fields: sum
+    update-endpoint: update_product_cell
+    get-endpoint: get_product_cell
