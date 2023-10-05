@@ -1,9 +1,8 @@
 package config
 
 import (
-	"io/ioutil"
-
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 type Field struct {
@@ -11,24 +10,31 @@ type Field struct {
 	Type string `yaml:"type"`
 }
 
-type Key struct {
-	Key    string  `yaml:"key"`
-	Fields []Field `yaml:"fields"`
-}
-
-type Endpoint struct {
-	UpdateInventory string `yaml:"update_inventory"`
-	GetInventory    string `yaml:"get_inventory"`
+type Entity struct {
+	Entity         string  `yaml:"entity"`
+	Fields         []Field `yaml:"fields"`
+	UpdateEndpoint string  `yaml:"update-endpoint"`
+	GetEndpoint    string  `yaml:"get-endpoint"`
+	ControlFields  string  `yaml:"control-fields,omitempty"`
 }
 
 type Config struct {
 	RedisAddr         string   `yaml:"redis_addr"`
-	Endpoints         Endpoint `yaml:"endpoints"`
-	DatabaseStructure []Key    `yaml:"database_structure"`
+	DatabaseStructure []Entity `yaml:"database_structure"`
 }
 
-func LoadConfig(filename string) (*Config, error) {
-	bytes, err := ioutil.ReadFile(filename)
+func (c *Config) GetEntityConfig(entityName string) *Entity {
+	for _, e := range c.DatabaseStructure {
+		if e.Entity == entityName {
+			return &e
+		}
+	}
+	return nil
+}
+
+func LoadConfig() (*Config, error) {
+	//bytes, err := ioutil.ReadFile(filename)
+	bytes, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		return nil, err
 	}

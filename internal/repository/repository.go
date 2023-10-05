@@ -10,47 +10,55 @@ import (
 var ctx = context.Background()
 
 type Repository struct {
-	client            *redis.Client
-	databaseStructure []config.Key
+	client *redis.Client
+	config *config.Config
 }
 
-func NewRepository(client *redis.Client, dbStruct []config.Key) *Repository {
-	return &Repository{client: client, databaseStructure: dbStruct}
+func NewRepository(client *redis.Client, cfg *config.Config) *Repository {
+	return &Repository{client: client, config: cfg}
 }
 
-func (r *Repository) UpdateInventoryInRedis(key string, fields map[string]interface{}) error {
-	// Проверьте каждое поле на допустимость
-	for field := range fields {
-		if !r.isValidKeyField(key, field) {
-			return errors.New("invalid key or field")
+func (r *Repository) UpdateEntityInRedis(entityName, guid string, fields map[string]interface{}) error {
+	entityConfig := r.config.GetEntityConfig(entityName)
+	if entityConfig == nil {
+		return errors.New("Invalid entity")
+	}
+
+	// Check if the entity already exists
+	exists, err := r.client.Exists(ctx, guid).Result()
+	if err != nil {
+		return err
+	}
+
+	pipe := r.client.TxPipeline()
+	if exists == 0 { // If entity doesn't exist, create a new one
+		pipe.HMSet(ctx, guid, fields)
+	} else { // If entity exists, update it
+		for field, value := range fields {
+			pipe.HSet(ctx, guid, field, value)
 		}
 	}
-	pipe := r.client.TxPipeline()
-	for field, value := range fields {
-		pipe.HSet(ctx, key, field, value)
-	}
-	_, err := pipe.Exec(ctx)
+
+	_, err = pipe.Exec(ctx)
 	return err
 }
 
-func (r *Repository) GetInventoryFromRedis(key, field string) (int, error) {
-	// Проверить, существует ли ключ и поле в конфигурации
-	if !r.isValidKeyField(key, field) {
-		return 0, errors.New("invalid key or field")
+func (r *Repository) GetEntityFromRedis(entityName, guid string) (map[string]interface{}, error) {
+	entityConfig := r.config.GetEntityConfig(entityName)
+	if entityConfig == nil {
+		return nil, errors.New("Invalid entity")
 	}
-	quantity, err := r.client.HGet(ctx, key, field).Int()
-	return quantity, err
-}
 
-func (r *Repository) isValidKeyField(key, field string) bool {
-	for _, k := range r.databaseStructure {
-		if k.Key == key {
-			for _, f := range k.Fields {
-				if f.Name == field {
-					return true
-				}
-			}
-		}
+	resultString, err := r.client.HGetAll(ctx, guid).Result()
+	if err != nil {
+		return nil, err
 	}
-	return false
+
+	// Convert map[string]string to map[string]interface{}
+	resultInterface := make(map[string]interface{})
+	for k, v := range resultString {
+		resultInterface[k] = v
+	}
+
+	return resultInterface, nil
 }

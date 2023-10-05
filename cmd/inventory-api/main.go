@@ -7,29 +7,33 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 
-	"inventory/internal/config" // импортировать пакет конфигурации
+	"inventory/internal/config"
 	"inventory/internal/handler"
 	"inventory/internal/repository"
 	"inventory/internal/service"
 )
 
 func main() {
-	// Загрузить конфигурационный файл
-	cfg, err := config.LoadConfig("config.yaml")
+	// Загрузка конфигурации один раз при старте
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("could not load config: %v", err)
 	}
 
-	// Используйте значения из конфигурации для настройки приложения
-	// Например, используйте адрес Redis из конфигурации
-	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr}) // Предположим, что у вас есть поле RedisAddr в структуре Config
-	repo := repository.NewRepository(rdb, cfg.DatabaseStructure)
+	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
+	repo := repository.NewRepository(rdb, cfg)
 	serv := service.NewService(repo, cfg)
-	hand := handler.NewHandler(serv)
+	hand := handler.NewHandler(serv, cfg)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/inventory/update", hand.UpdateInventory).Methods("POST")
-	r.HandleFunc("/inventory/{product_id}", hand.GetInventory).Methods("GET")
+	// Dynamically set routes based on the loaded configuration
+	for _, entity := range cfg.DatabaseStructure {
+		updateEndpoint := "/" + entity.UpdateEndpoint
+		getEndpoint := "/" + entity.GetEndpoint + "/{guid}"
+
+		r.HandleFunc(updateEndpoint, hand.UpdateEntityHandler).Methods("POST")
+		r.HandleFunc(getEndpoint, hand.GetEntityHandler).Methods("GET")
+	}
 
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)

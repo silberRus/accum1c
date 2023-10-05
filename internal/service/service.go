@@ -1,14 +1,10 @@
 package service
 
 import (
+	"errors"
 	"inventory/internal/config"
 	"inventory/internal/repository"
 )
-
-type UpdateInventoryRequest struct {
-	ProductID string                 `json:"product_id"`
-	Fields    map[string]interface{} `json:"fields"`
-}
 
 type Service struct {
 	repo *repository.Repository
@@ -19,12 +15,30 @@ func NewService(repo *repository.Repository, cfg *config.Config) *Service {
 	return &Service{repo: repo, cfg: cfg}
 }
 
-func (s *Service) UpdateInventory(request UpdateInventoryRequest) error {
-	// Передаем все поля из запроса для обновления в Redis
-	return s.repo.UpdateInventoryInRedis(request.ProductID, request.Fields)
+func (s *Service) UpdateEntity(entityName string, fields map[string]interface{}, entityConfig *config.Entity) error {
+	// Validate the entity and fields
+	if entityConfig == nil {
+		return errors.New("Invalid entity")
+	}
+
+	// If there's a control field, check its value
+	if entityConfig.ControlFields != "" {
+		controlFieldValue, ok := fields[entityConfig.ControlFields]
+		if ok {
+			if floatValue, ok := controlFieldValue.(float64); ok && floatValue < 0 {
+				return errors.New("Control field value cannot be negative")
+			}
+		}
+	}
+
+	// Update the entity in Redis
+	guid, ok := fields["guid"].(string)
+	if !ok {
+		return errors.New("guid is required")
+	}
+	return s.repo.UpdateEntityInRedis(entityName, guid, fields)
 }
 
-func (s *Service) GetInventory(productID string) (int, error) {
-	key := s.cfg.DatabaseStructure[0].Fields[3].Name
-	return s.repo.GetInventoryFromRedis(productID, key)
+func (s *Service) GetEntity(entityName string, guid string) (map[string]interface{}, error) {
+	return s.repo.GetEntityFromRedis(entityName, guid)
 }

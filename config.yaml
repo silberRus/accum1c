@@ -2,7 +2,7 @@ redis_addr: "localhost:6379"
 
 database_structure:
 
-  - key: product
+  - entity: product
     fields:
       - name: guid
         type: string
@@ -13,7 +13,7 @@ database_structure:
     update-endpoint: update_product
     get-endpoint: get_product
 
-  - key: category
+  - entity: category
     fields:
       - name: guid
         type: string
@@ -22,7 +22,7 @@ database_structure:
     update-endpoint: update_category
     get-endpoint: get_category
 
-  - key: quantity
+  - entity: quantity
     fields:
       - name: guid
         type: string
@@ -31,7 +31,7 @@ database_structure:
     update-endpoint: update_quantity
     get-endpoint: get_quantity
 
-  - key: cell
+  - entity: cell
     fields:
       - name: guid
         type: string
@@ -40,7 +40,7 @@ database_structure:
     update-endpoint: update_cell
     get-endpoint: get_cell
 
-  - key: product-store
+  - entity: product-store
     fields:
       - name: product
         type: product
@@ -54,7 +54,7 @@ database_structure:
     update-endpoint: update_product_store
     get-endpoint: get_product_store
 
-  - key: product-cell
+  - entity: product-cell
     fields:
       - name: product
         type: product
