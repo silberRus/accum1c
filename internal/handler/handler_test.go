@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,12 +17,7 @@ import (
 
 func setup() (*Handler, *mux.Router) {
 
-	//cfg, err := config.LoadConfig("../../config.yaml")
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("could not load config: %v", err)
-	}
-
+	cfg := config.GlobalConfig
 	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
 	repo := repository.NewRepository(rdb, cfg)
 	serv := service.NewService(repo, cfg)
@@ -77,6 +72,38 @@ func TestUpdateExistingProduct(t *testing.T) {
 	}
 }
 
+func TestGetProductStore(t *testing.T) {
+	_, router := setup()
+
+	getProductResponse := sendRequest(router, "GET", "/get_product_store/workflow-guid", nil)
+	if getProductResponse.Result().StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(getProductResponse.Body)
+		t.Fatalf("Expected status code %d but got %d. Response body: %s", http.StatusOK, getProductResponse.Result().StatusCode, string(bodyBytes))
+	}
+
+	var product map[string]interface{}
+	json.Unmarshal(getProductResponse.Body.Bytes(), &product)
+
+	currentSum := product["sum"]
+	println(currentSum)
+}
+
+func TestUpdateStore(t *testing.T) {
+	_, router := setup()
+
+	getProductResponse := sendRequest(router, "GET", "/get_product/workflow-guid", nil)
+	if getProductResponse.Result().StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(getProductResponse.Body)
+		t.Fatalf("Expected status code %d but got %d. Response body: %s", http.StatusOK, getProductResponse.Result().StatusCode, string(bodyBytes))
+	}
+
+	var product map[string]interface{}
+	json.Unmarshal(getProductResponse.Body.Bytes(), &product)
+	//currentSum := product["sum"].(float64)
+	currentSum := product["sum"]
+	println(currentSum)
+}
+
 func TestProductWorkflow(t *testing.T) {
 	_, router := setup()
 
@@ -94,12 +121,11 @@ func TestProductWorkflow(t *testing.T) {
 	}
 
 	// 2. Списать некоторое количество продукта
-	deductProduct := map[string]interface{}{
+	deductPayload, _ := json.Marshal(map[string]interface{}{
 		"guid": "workflow-guid",
 		"sum":  -50.0,
-	}
-	deductPayload, _ := json.Marshal(deductProduct)
-	deductResponse := sendRequest(router, "POST", "/update_product", deductPayload)
+	})
+	deductResponse := sendRequest(router, "POST", "/update_product_store", deductPayload)
 	if deductResponse.Result().StatusCode != http.StatusNoContent {
 		t.Fatalf("Expected status code %d but got %d", http.StatusNoContent, deductResponse.Result().StatusCode)
 	}
@@ -107,12 +133,14 @@ func TestProductWorkflow(t *testing.T) {
 	// 3. Получить текущее количество продукта
 	getProductResponse := sendRequest(router, "GET", "/get_product/workflow-guid", nil)
 	if getProductResponse.Result().StatusCode != http.StatusOK {
-		t.Fatalf("Expected status code %d but got %d", http.StatusOK, getProductResponse.Result().StatusCode)
+		bodyBytes, _ := io.ReadAll(getProductResponse.Body)
+		t.Fatalf("Expected status code %d but got %d. Response body: %s", http.StatusOK, getProductResponse.Result().StatusCode, string(bodyBytes))
 	}
 
 	var product map[string]interface{}
 	json.Unmarshal(getProductResponse.Body.Bytes(), &product)
-	currentSum := product["sum"].(float64)
+	//currentSum := product["sum"].(float64)
+	currentSum := product["sum"]
 
 	// 4. Проверить текущее количество
 	if currentSum != 50.0 {

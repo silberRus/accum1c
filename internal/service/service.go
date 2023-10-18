@@ -31,14 +31,19 @@ func (s *Service) UpdateEntity(entityName string, fields map[string]interface{},
 		}
 	}
 
-	// Update the entity in Redis
+	// Generate the Redis key
 	guid, ok := fields["guid"].(string)
 	if !ok {
 		return errors.New("guid is required")
 	}
-	return s.repo.UpdateEntityInRedis(entityName, guid, fields)
+	redisKey := entityName + ":" + guid
+
+	// Update the entity in Redis
+	return s.repo.UpdateEntityInRedis(redisKey, fields)
 }
 
 func (s *Service) GetEntity(entityName string, guid string) (map[string]interface{}, error) {
-	return s.repo.GetEntityFromRedis(entityName, guid)
+	// Generate the Redis key
+	redisKey := entityName + ":" + guid
+	return s.repo.GetEntityFromRedis(redisKey)
 }

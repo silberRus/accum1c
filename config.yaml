@@ -40,19 +40,32 @@ database_structure:
     update-endpoint: update_cell
     get-endpoint: get_cell
 
+  - entity: warehouse
+    fields:
+      - name: guid
+        type: string
+      - name: name
+        type: string
+    update-endpoint: update_warehouse
+    get-endpoint: get_warehouse
+
   - entity: product-store
     fields:
       - name: product
         type: product
       - name: quantity
         type: quantity
-      - name: category
-        type: category
+      - name: warehouse
+        type: warehouse
       - sum: sum
         type: float
     control-fields: sum
     update-endpoint: update_product_store
     get-endpoint: get_product_store
+    lists:
+      - name: warehouses
+        key_format: product:{productGUID}:quantity:warehouses
+
 
   - entity: product-cell
     fields:
@@ -65,3 +78,6 @@ database_structure:
     control-fields: sum
     update-endpoint: update_product_cell
     get-endpoint: get_product_cell
+    lists:
+      - name: cells
+        key_format: product:{productGUID}:cells
