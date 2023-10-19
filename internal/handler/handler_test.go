@@ -85,7 +85,7 @@ func TestGetProductStore(t *testing.T) {
 	json.Unmarshal(getProductResponse.Body.Bytes(), &product)
 
 	currentSum := product["sum"]
-	println(currentSum)
+	println("currentSum", currentSum)
 }
 
 func TestUpdateStore(t *testing.T) {
@@ -125,13 +125,13 @@ func TestProductWorkflow(t *testing.T) {
 		"guid": "workflow-guid",
 		"sum":  -50.0,
 	})
-	deductResponse := sendRequest(router, "POST", "/update_product_store", deductPayload)
+	deductResponse := sendRequest(router, "POST", "/update_product_store:workflow-guid", deductPayload) // используем новый ключ
 	if deductResponse.Result().StatusCode != http.StatusNoContent {
 		t.Fatalf("Expected status code %d but got %d", http.StatusNoContent, deductResponse.Result().StatusCode)
 	}
 
 	// 3. Получить текущее количество продукта
-	getProductResponse := sendRequest(router, "GET", "/get_product/workflow-guid", nil)
+	getProductResponse := sendRequest(router, "GET", "/get_product:workflow-guid", nil) // используем новый ключ
 	if getProductResponse.Result().StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(getProductResponse.Body)
 		t.Fatalf("Expected status code %d but got %d. Response body: %s", http.StatusOK, getProductResponse.Result().StatusCode, string(bodyBytes))
@@ -139,8 +139,7 @@ func TestProductWorkflow(t *testing.T) {
 
 	var product map[string]interface{}
 	json.Unmarshal(getProductResponse.Body.Bytes(), &product)
-	//currentSum := product["sum"].(float64)
-	currentSum := product["sum"]
+	currentSum, _ := product["sum"].(float64)
 
 	// 4. Проверить текущее количество
 	if currentSum != 50.0 {
@@ -153,7 +152,7 @@ func TestProductWorkflow(t *testing.T) {
 		"sum":  -100.0,
 	}
 	overDeductPayload, _ := json.Marshal(overDeductProduct)
-	overDeductResponse := sendRequest(router, "POST", "/update_product", overDeductPayload)
+	overDeductResponse := sendRequest(router, "POST", "/update_product:workflow-guid", overDeductPayload) // используем новый ключ
 	if overDeductResponse.Result().StatusCode != http.StatusBadRequest {
 		t.Fatalf("Expected status code %d but got %d", http.StatusBadRequest, overDeductResponse.Result().StatusCode)
 	}
