@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"inventory/internal/config"
 	"strconv"
@@ -51,6 +52,8 @@ func (r *Repository) UpdateEntityInRedis(key string, fields map[string]interface
 
 func (r *Repository) GetEntityFromRedis(key string) (map[string]interface{}, error) {
 	resultString, err := r.client.HGetAll(ctx, key).Result()
+	fmt.Printf("Getting entity from Redis with key: %s\n", key)
+	fmt.Printf("Redis result string: %v\n", resultString)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +101,7 @@ func (r *Repository) convertRedisResultToEntity(resultString map[string]string) 
 		}
 	}
 
+	fmt.Printf("Converting Redis result to entity. Input string: %v\n", resultString)
 	return resultInterface, nil
 }
 

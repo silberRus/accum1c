@@ -50,7 +50,6 @@ func getEntityName(path string, w http.ResponseWriter, endpointType EndpointType
 			break
 		}
 	}
-
 	if entityName == "" {
 		http.Error(w, "Invalid endpoint", http.StatusBadRequest)
 	}
@@ -59,13 +58,17 @@ func getEntityName(path string, w http.ResponseWriter, endpointType EndpointType
 
 func (h *Handler) UpdateEntityHandler(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Printf("UpdateEntityHandler request: %v\n", r)
+
 	entityName := getEntityName(r.URL.Path, w, UpdateEndpoint)
 	if entityName == "" {
 		return
 	}
+	fmt.Printf("Entity name: %s\n", entityName)
 
 	conf := config.GlobalConfig
 	entityConfig := conf.GetEntityConfig(entityName)
+	fmt.Printf("Entity config: %v\n", entityConfig)
 
 	var request map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -88,6 +91,7 @@ func (h *Handler) UpdateEntityHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetEntityHandler(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Printf("GetEntityHandler request: %v\n", r)
 	pathSegments := strings.SplitN(r.URL.Path, "/", 3)
 	if len(pathSegments) < 2 {
 		http.Error(w, "Invalid endpoint", http.StatusBadRequest)
@@ -99,6 +103,7 @@ func (h *Handler) GetEntityHandler(w http.ResponseWriter, r *http.Request) {
 	if entityName == "" {
 		return
 	}
+	fmt.Printf("Entity name: %s\n", entityName)
 
 	// Validate entity
 	entityConfig := h.config.GetEntityConfig(entityName)
@@ -109,6 +114,7 @@ func (h *Handler) GetEntityHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	entityGUID := vars["guid"]
+	fmt.Printf("Entity GUID: %s\n", entityGUID)
 
 	entityData, err := h.service.GetEntity(entityName, entityGUID)
 	if err != nil {

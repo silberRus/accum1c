@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -116,6 +117,7 @@ func TestProductWorkflow(t *testing.T) {
 	}
 	initialPayload, _ := json.Marshal(initialProduct)
 	addProductResponse := sendRequest(router, "POST", "/update_product", initialPayload)
+	fmt.Printf("Add product response: %v\n", addProductResponse.Result())
 	if addProductResponse.Result().StatusCode != http.StatusNoContent {
 		t.Fatalf("Expected status code %d but got %d", http.StatusNoContent, addProductResponse.Result().StatusCode)
 	}
@@ -126,6 +128,7 @@ func TestProductWorkflow(t *testing.T) {
 		"sum":  -50.0,
 	})
 	deductResponse := sendRequest(router, "POST", "/update_product_store:workflow-guid", deductPayload) // используем новый ключ
+	fmt.Printf("Deduct product response: %v\n", deductResponse.Result())
 	if deductResponse.Result().StatusCode != http.StatusNoContent {
 		t.Fatalf("Expected status code %d but got %d", http.StatusNoContent, deductResponse.Result().StatusCode)
 	}

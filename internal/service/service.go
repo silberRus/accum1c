@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"inventory/internal/config"
 	"inventory/internal/repository"
 )
@@ -16,10 +17,13 @@ func NewService(repo *repository.Repository, cfg *config.Config) *Service {
 }
 
 func (s *Service) UpdateEntity(entityName string, fields map[string]interface{}, entityConfig *config.Entity) error {
+
 	// Validate the entity and fields
 	if entityConfig == nil {
 		return errors.New("Invalid entity")
 	}
+
+	fmt.Printf("UpdateEntity inputs: entityName = %s, fields = %v, entityConfig = %v\n", entityName, fields, entityConfig)
 
 	// If there's a control field, check its value
 	if entityConfig.ControlFields != "" {
@@ -45,5 +49,6 @@ func (s *Service) UpdateEntity(entityName string, fields map[string]interface{},
 func (s *Service) GetEntity(entityName string, guid string) (map[string]interface{}, error) {
 	// Generate the Redis key
 	redisKey := entityName + ":" + guid
+	fmt.Printf("GetEntity inputs: entityName = %s, redisKey = %s\n", entityName, redisKey)
 	return s.repo.GetEntityFromRedis(redisKey)
 }
