@@ -45,7 +45,6 @@ func (r *Repository) UpdateEntityInRedis(key string, fields map[string]interface
 			pipe.SAdd(ctx, listKey, guid)
 		}
 	}
-
 	_, err := pipe.Exec(ctx)
 	return err
 }

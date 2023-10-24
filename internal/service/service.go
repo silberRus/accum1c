@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"inventory/internal/config"
 	"inventory/internal/repository"
+	"inventory/internal/validation"
 )
 
 type Service struct {
@@ -47,6 +48,9 @@ func (s *Service) UpdateEntity(entityName string, fields map[string]interface{},
 }
 
 func (s *Service) GetEntity(entityName string, guid string) (map[string]interface{}, error) {
+	if !validation.IsValidGUID(guid) {
+		return nil, errors.New("Invalid GUID")
+	}
 	// Generate the Redis key
 	redisKey := entityName + ":" + guid
 	fmt.Printf("GetEntity inputs: entityName = %s, redisKey = %s\n", entityName, redisKey)

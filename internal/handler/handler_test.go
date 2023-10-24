@@ -76,7 +76,7 @@ func TestUpdateExistingProduct(t *testing.T) {
 func TestGetProductStore(t *testing.T) {
 	_, router := setup()
 
-	getProductResponse := sendRequest(router, "GET", "/get_product_store/workflow-guid", nil)
+	getProductResponse := sendRequest(router, "GET", "/get_product_store/workflow-guid, nil)
 	if getProductResponse.Result().StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(getProductResponse.Body)
 		t.Fatalf("Expected status code %d but got %d. Response body: %s", http.StatusOK, getProductResponse.Result().StatusCode, string(bodyBytes))
