@@ -2,82 +2,60 @@ redis_addr: "localhost:6379"
 
 database_structure:
 
-  - entity: product
-    fields:
-      - name: guid
-        type: string
-      - name: code
-        type: string
-      - name: name
-        type: string
-    update-endpoint: update_product
-    get-endpoint: get_product
+  entities:
+    - entity: product
+      fields:
+        - name: code
+          type: string
+        - name: name
+          type: string
+      update-endpoint: update_product
+      get-endpoint: get_product
 
-  - entity: category
-    fields:
-      - name: guid
-        type: string
-      - name: name
-        type: string
-    update-endpoint: update_category
-    get-endpoint: get_category
+    - entity: quantity
+      fields:
+        - name: name
+          type: string
+      update-endpoint: update_quantity
+      get-endpoint: get_quantity
 
-  - entity: quantity
-    fields:
-      - name: guid
-        type: string
-      - name: name
-        type: string
-    update-endpoint: update_quantity
-    get-endpoint: get_quantity
+    - entity: cell
+      fields:
+        - name: name
+          type: string
+      update-endpoint: update_cell
+      get-endpoint: get_cell
 
-  - entity: cell
-    fields:
-      - name: guid
-        type: string
-      - name: name
-        type: string
-    update-endpoint: update_cell
-    get-endpoint: get_cell
+    - entity: warehouse
+      fields:
+        - name: name
+          type: string
+      update-endpoint: update_warehouse
+      get-endpoint: get_warehouse
 
-  - entity: warehouse
-    fields:
-      - name: guid
-        type: string
-      - name: name
-        type: string
-    update-endpoint: update_warehouse
-    get-endpoint: get_warehouse
+  accums:
+    - accum: product-store
+      fields:
+        - name: product
+          type: product
+        - name: quantity
+          type: quantity
+        - name: warehouse
+          type: warehouse
+      balance:
+        - name: sum
+          type: float
+      update-endpoint: update_product_store
+      get-endpoint: get_product_store
 
-  - entity: product-store
-    fields:
-      - name: product
-        type: product
-      - name: quantity
-        type: quantity
-      - name: warehouse
-        type: warehouse
-      - sum: sum
-        type: float
-    control-fields: sum
-    update-endpoint: update_product_store
-    get-endpoint: get_product_store
-    lists:
-      - name: warehouses
-        key_format: product:{productGUID}:quantity:warehouses
-
-
-  - entity: product-cell
-    fields:
-      - name: product
-        type: product
-      - name: cell
-        type: cell
-      - name: sum
-        type: float
-    control-fields: sum
-    update-endpoint: update_product_cell
-    get-endpoint: get_product_cell
-    lists:
-      - name: cells
-        key_format: product:{productGUID}:cells
+    - accum: product-cell
+      fields:
+        - name: product
+          type: product
+        - name: cell
+          type: cell
+      balance:
+        - name: sum
+          type: float
+      update-endpoint: update_product_cell
+      get-endpoint: get_product_cell

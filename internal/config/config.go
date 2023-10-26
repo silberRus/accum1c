@@ -11,6 +11,14 @@ type Field struct {
 	Type string `yaml:"type"`
 }
 
+type Accum struct {
+	Accum          string  `yaml:"entity"`
+	Fields         []Field `yaml:"fields"`
+	Balance        []Field `yaml:"balance"`
+	UpdateEndpoint string  `yaml:"update-endpoint"`
+	GetEndpoint    string  `yaml:"get-endpoint"`
+}
+
 type Entity struct {
 	Entity         string  `yaml:"entity"`
 	Fields         []Field `yaml:"fields"`
@@ -24,14 +32,17 @@ type Entity struct {
 }
 
 type Config struct {
-	RedisAddr         string   `yaml:"redis_addr"`
-	DatabaseStructure []Entity `yaml:"database_structure"`
+	RedisAddr         string `yaml:"redis_addr"`
+	DatabaseStructure struct {
+		Entitys []Entity `yaml:"entities"`
+		Accums  []Accum  `yaml:"accums"`
+	}
 }
 
 var GlobalConfig = initializeConfig()
 
 func (c *Config) GetEntityConfig(entityName string) *Entity {
-	for _, e := range c.DatabaseStructure {
+	for _, e := range c.DatabaseStructure.Entitys {
 		if e.Entity == entityName {
 			return &e
 		}
@@ -40,7 +51,7 @@ func (c *Config) GetEntityConfig(entityName string) *Entity {
 }
 
 func (c *Config) IsEntityName(name string) bool {
-	for _, entity := range c.DatabaseStructure {
+	for _, entity := range c.DatabaseStructure.Entitys {
 		if entity.Entity == name {
 			return true
 		}
